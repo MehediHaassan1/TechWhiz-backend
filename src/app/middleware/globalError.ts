@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
+import { TErrorSources } from "../interface/error";
 import AppError from "../errors/AppError";
 import config from "../config";
-import { TErrorSources } from "../interface/error";
 
 const globalErrorHandler = (
   error: any,
@@ -29,6 +29,15 @@ const globalErrorHandler = (
         message: error?.message,
       },
     ];
+  } else if (error.name === "TokenExpiredError") {
+    statusCode = 400;
+    message = 'Invalid token!';
+    errorSources = [
+      {
+        path: '',
+        message: error?.message,
+      },
+    ];
   } else if (error instanceof Error) {
     message = error.message;
     errorSources = [
@@ -50,4 +59,11 @@ const globalErrorHandler = (
 }
 
 
-export default globalErrorHandler;
+const errorHandlerWithParams: (params: any) => any = (params) => {
+  return (error: any, req: Request, res: Response, next: NextFunction) => {
+    globalErrorHandler(error, req, res, next);
+  };
+};
+
+export default errorHandlerWithParams;
+

@@ -1,6 +1,7 @@
 import express, { Application, Request, Response } from 'express'
-import globalErrorHandler from './app/middleware/globalError';
-import notFound from './app/middleware/notFound';
+import errorHandlerWithParams from './app/middleware/globalError';
+import notFoundHandlerWithParams from './app/middleware/notFound';
+import router from './app/routes';
 const app: Application = express()
 
 
@@ -8,15 +9,18 @@ const app: Application = express()
 app.use(express.json());
 
 
+// global route
+app.use('/api/v1', router)
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Server is running smoothly!')
 })
 
 
 // global error handler
-app.use(globalErrorHandler);
+app.use(errorHandlerWithParams);
 
 // not found route
-app.use(notFound);
+app.use(notFoundHandlerWithParams);
 
 export default app;

@@ -8,4 +8,10 @@ const notFound = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-export default notFound;
+const notFoundHandlerWithParams: (params: any) => any = (params) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    notFound(req, res, next);
+  };
+};
+
+export default notFoundHandlerWithParams;
