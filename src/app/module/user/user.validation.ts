@@ -13,6 +13,20 @@ const createUserValidation = z.object({
   })
 });
 
+
+const updateUserValidation = z.object({
+  body: z.object({
+    name: z.string().optional(),
+    phone: z.string().optional(),
+    gender: z.enum(['male', 'female'], { message: 'Gender must be male or female!' }).optional(),
+    birthday: z.string().optional(),
+    profileImage: z.string().url("Invalid URL").optional(),
+    bio: z.string().optional(),
+    userName: z.string().optional(),
+  })
+})
+
 export const UserValidation = {
   createUserValidation,
+  updateUserValidation,
 }
