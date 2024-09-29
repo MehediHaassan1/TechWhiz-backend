@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 export interface IUser {
   _id: string;
@@ -12,8 +12,8 @@ export interface IUser {
   profileImage: string;
   isVerified: boolean;
   isDeleted: boolean;
-  followers: number;
-  following: number;
+  followers: Types.ObjectId[];
+  following: Types.ObjectId[];
   bio: string;
   subscription: 'normal' | 'premium';
   userName: string;

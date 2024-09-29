@@ -31,6 +31,11 @@ const updateUserInDB = async (email: string, payload: Partial<IUser>) => {
     throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!')
   }
 
+  const isUserNameUserExists = await User.findOne({ userName: payload.userName })
+  if (isUserNameUserExists) {
+    throw new AppError(httpStatus.CONFLICT, 'Username is already taken!')
+  }
+
   const result = await User.findByIdAndUpdate(
     user?._id,
     payload,

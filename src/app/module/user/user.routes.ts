@@ -13,7 +13,7 @@ router.get(
   UserController.getAllUsers
 )
 
-router.post(
+router.put(
   '/update-profile',
   UserController.updateUser
 )

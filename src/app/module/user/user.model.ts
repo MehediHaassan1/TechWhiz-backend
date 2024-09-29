@@ -58,14 +58,16 @@ const userSchema = new Schema<IUser, IUserModel>({
     type: Boolean,
     default: false,
   },
-  followers: {
-    type: Number,
-    default: 0,
-  },
-  following: {
-    type: Number,
-    default: 0,
-  },
+  followers: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: [],
+  }],
+  following: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: [],
+  }],
   bio: {
     type: String,
     trim: true,
