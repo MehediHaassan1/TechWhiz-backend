@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { TErrorSources } from "../interface/error";
 import AppError from "../errors/AppError";
 import config from "../config";
+import handleValidationError from "../errors/handleValidationError";
 
 const globalErrorHandler = (
   error: any,
@@ -20,7 +21,13 @@ const globalErrorHandler = (
     }
   ]
 
-  if (error instanceof AppError) {
+  if (error.name === 'ValidationError') {
+    const simplifiedError = handleValidationError(error);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
+    errorSources = simplifiedError.errorSources;
+  }
+  else if (error instanceof AppError) {
     statusCode = error?.statusCode;
     message = error.message;
     errorSources = [

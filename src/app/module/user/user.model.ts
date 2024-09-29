@@ -3,6 +3,10 @@ import { model, Schema } from "mongoose";
 import { IUser, IUserModel } from "./user.interface";
 import config from '../../config';
 
+const generateRandomNumber = () => {
+  return Math.floor(0 + Math.random() * 9000);
+};
+
 
 const userSchema = new Schema<IUser, IUserModel>({
   name: {
@@ -80,6 +84,16 @@ const userSchema = new Schema<IUser, IUserModel>({
   },
 }, {
   timestamps: true,
+});
+
+
+userSchema.pre('save', function (next) {
+  if (!this.userName) {
+    const randomNum = generateRandomNumber();
+    const formattedName = this.name.replace(/\s+/g, '').toLowerCase();
+    this.userName = `tw_${formattedName}_${randomNum}`;
+  }
+  next();
 });
 
 
