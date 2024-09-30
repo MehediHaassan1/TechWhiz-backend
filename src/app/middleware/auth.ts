@@ -24,11 +24,25 @@ const authHandler = (...userRoles: TUserRole[]) => {
     }
 
 
-    const { email, role } = decoded;
+    const { email, role, iat } = decoded;
 
     const existingUser = await User.isUserExists(email);
     if (!existingUser) {
       throw new AppError(httpStatus.FORBIDDEN, 'Forbidden access!')
+    }
+
+    if (existingUser.isDeleted) {
+      throw new AppError(httpStatus.NOT_FOUND, 'User not found!')
+    }
+
+    if (
+      existingUser.passwordChangedAt &&
+      User.isJWTIssuedBeforePasswordChanged(
+        existingUser.passwordChangedAt,
+        iat as number
+      )
+    ) {
+      throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
     }
 
     if (userRoles && !userRoles.includes(role)) {

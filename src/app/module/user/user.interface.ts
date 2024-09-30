@@ -7,6 +7,7 @@ export interface IUser {
   email: string;
   phone: string;
   password: string;
+  passwordChangedAt?: Date;
   role: 'user' | 'admin';
   gender: 'male' | 'female';
   birthday: string;
@@ -23,6 +24,10 @@ export interface IUser {
 export interface IUserModel extends Model<IUser> {
   isUserExists(email: string): Promise<IUser>;
   isPasswordMatched(plainTextPassword: string, hashedPassword: string): boolean;
+  isJWTIssuedBeforePasswordChanged(
+    passwordChangedTimestamp: Date,
+    jwtIssuedTimestamp: number
+  ): boolean;
 }
 
 

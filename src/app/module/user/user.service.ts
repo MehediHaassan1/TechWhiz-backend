@@ -21,6 +21,18 @@ const getUserFromDB = async (userId: string) => {
   return user;
 }
 
+const getMeFromDB = async (email: string) => {
+  const user = await User.isUserExists(email);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+  }
+  if (user?.isDeleted) {
+    throw new AppError(httpStatus.FORBIDDEN, "User is deleted!");
+  }
+
+  return user;
+}
+
 
 const updateUserInDB = async (email: string, payload: Partial<IUser>) => {
   const user = await User.isUserExists(email);
@@ -72,6 +84,7 @@ const deleteUserFromDB = async (userId: string) => {
 export const UserService = {
   getUserFromDB,
   getAllUsersFromDB,
+  getMeFromDB,
   updateUserInDB,
   deleteUserFromDB,
 }
