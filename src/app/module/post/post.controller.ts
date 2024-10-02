@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { PostService } from "./post.service";
+import AppError from "../../errors/AppError";
 
 
 const createPost = catchAsync(async (req, res) => {
@@ -95,6 +96,37 @@ const commentUpdate = catchAsync(async (req, res) => {
   });
 })
 
+const votePost = catchAsync(async (req, res) => {
+  const { postId } = req.params;
+  const { action } = req.body;
+
+  if (!['upvote', 'downvote'].includes(action)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid action');
+  }
+
+  const result = await PostService.votePostIntoDB(postId, action);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: `Post ${action}d successfully!`,
+    data: result
+  });
+});
+
+
+const myPosts = catchAsync(async (req, res) => {
+  const userEmail = req.user.email;
+  const result = await PostService.myPostsFromDB(userEmail);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: `Posts fetched successfully!`,
+    data: result
+  });
+});
+
 
 export const PostController = {
   createPost,
@@ -105,4 +137,6 @@ export const PostController = {
   commentPost,
   commentDelete,
   commentUpdate,
+  votePost,
+  myPosts,
 }

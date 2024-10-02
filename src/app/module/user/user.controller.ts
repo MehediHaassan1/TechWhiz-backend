@@ -62,10 +62,23 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 })
 
+const toggleFollow = catchAsync(async (req, res) => {
+  const followingId = req.params.userId;
+  const followerEmail = req.user.email;
+  const result = await UserService.toggleFollowIntoDB(followingId, followerEmail);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Action successful!",
+    data: result
+  });
+})
+
 export const UserController = {
   getAllUsers,
   getUser,
   getMe,
   updateUser,
   deleteUser,
+  toggleFollow,
 }

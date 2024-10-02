@@ -37,7 +37,7 @@ const loginUserIntoDB = async (payload: ILogin) => {
 
   const isPasswordMatch = await User.isPasswordMatched(payload.password, user?.password);
   if (!isPasswordMatch) {
-    throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid Password!');
+    throw new AppError(httpStatus.NOT_FOUND, 'Invalid Password!');
   }
 
 
@@ -46,18 +46,20 @@ const loginUserIntoDB = async (payload: ILogin) => {
     email: user.email as string,
     role: user.role as string,
   }
+
+
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
     config.jwt_access_secret_expires_in as string
   )
-
-
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as string,
     config.jwt_refresh_secret_expires_in as string
   )
+
+  console.log(jwtPayload);
 
   return {
     user,

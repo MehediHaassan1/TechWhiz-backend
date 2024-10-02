@@ -2,6 +2,8 @@ import httpStatus from "http-status";
 import AppError from "../../errors/AppError";
 import { IPost, IComment } from "./post.interface";
 import Post from "./post.model";
+import User from "../user/user.model";
+import mongoose from "mongoose";
 
 const createPostIntoDB = async (postData: IPost) => {
   const result = await Post.create(postData)
@@ -9,7 +11,10 @@ const createPostIntoDB = async (postData: IPost) => {
 };
 
 const getPostsFromDB = async () => {
-  const result = await Post.find().populate("author").populate("comments.user")
+  const result = await Post.find()
+    .populate("author")
+    .populate("comments.user")
+    .sort("-createdAt");
   return result;
 };
 
@@ -107,7 +112,7 @@ const commentDeleteFromDB = async (postId: string, commentId: string) => {
 const commentUpdateIntoDB = async (
   postId: string,
   commentId: string,
-  newComment:  string
+  newComment: string
 ) => {
 
 
@@ -136,6 +141,50 @@ const commentUpdateIntoDB = async (
   return updatedPost;
 }
 
+const votePostIntoDB = async (postId: string, action: 'upvote' | 'downvote') => {
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No post found!');
+  }
+
+  if (post.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Post has been deleted');
+  }
+
+  if (action === 'upvote') {
+    post.upVotes += 1;
+  } else if (action === 'downvote') {
+    post.downVotes += 1;
+  }
+
+  const updatedPost = await post.save();
+  return updatedPost;
+};
+
+
+const myPostsFromDB = async (userEmail: string) => {
+  const user = await User.isUserExists(userEmail);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
+  }
+  if (user?.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, "User deleted!")
+  }
+  const userId = user?._id.toString();
+
+  const result = await Post.find({ author: userId, isDeleted: false })
+    .populate('author')
+    .sort("-createdAt");
+
+
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Post not found!');
+  }
+
+  return result;
+}
+
 
 export const PostService = {
   createPostIntoDB,
@@ -146,4 +195,6 @@ export const PostService = {
   commentPostIntoDB,
   commentDeleteFromDB,
   commentUpdateIntoDB,
+  votePostIntoDB,
+  myPostsFromDB,
 }

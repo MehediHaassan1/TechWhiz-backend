@@ -1,13 +1,14 @@
 import express, { Application, Request, Response } from 'express'
-import errorHandlerWithParams from './app/middleware/globalError';
-import notFoundHandlerWithParams from './app/middleware/notFound';
 import router from './app/routes';
+import cookieParser from 'cookie-parser';
+import globalErrorHandler from './app/middleware/globalError';
+import notFound from './app/middleware/notFound';
 const app: Application = express()
 
 
 // parser
 app.use(express.json());
-
+app.use(cookieParser())
 
 // global route
 app.use('/api/v1', router)
@@ -18,9 +19,9 @@ app.get('/', (req: Request, res: Response) => {
 
 
 // global error handler
-app.use(errorHandlerWithParams);
+app.use(globalErrorHandler);
 
 // not found route
-app.use(notFoundHandlerWithParams);
+app.use(notFound);
 
 export default app;

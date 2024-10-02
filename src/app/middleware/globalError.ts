@@ -1,76 +1,74 @@
-import { NextFunction, Request, Response } from "express";
-import { TErrorSources } from "../interface/error";
-import AppError from "../errors/AppError";
-import config from "../config";
-import handleValidationError from "../errors/handleValidationError";
+import { NextFunction, Request, Response } from 'express';
+import { ZodError } from 'zod';
+import config from '../config';
+import AppError from '../errors/AppError';
+import handleCastError from '../errors/handleCastError';
+import handleDuplicateError from '../errors/handleDuplicateError';
+import handleValidationError from '../errors/handleValidationError';
+import handleZodError from '../errors/handleZodError';
+import { TErrorSources } from '../interface/error';
 
 const globalErrorHandler = (
-  error: any,
+  err: any,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-
   let statusCode = 500;
-  let message = 'Something went wrong!'
-
+  let message = 'Something went wrong!';
   let errorSources: TErrorSources = [
     {
       path: '',
-      message: 'Something went wrong!'
-    }
-  ]
+      message: 'Something went wrong',
+    },
+  ];
 
-  if (error.name === 'ValidationError') {
-    const simplifiedError = handleValidationError(error);
-    statusCode = simplifiedError.statusCode;
-    message = simplifiedError.message;
-    errorSources = simplifiedError.errorSources;
-  }
-  else if (error instanceof AppError) {
-    statusCode = error?.statusCode;
-    message = error.message;
+  if (err instanceof ZodError) {
+    const simplifiedError = handleZodError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.name === 'ValidationError') {
+    const simplifiedError = handleValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleCastError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleDuplicateError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err instanceof AppError) {
+    statusCode = err?.statusCode;
+    message = err.message;
     errorSources = [
       {
         path: '',
-        message: error?.message,
+        message: err?.message,
       },
     ];
-  } else if (error.name === "TokenExpiredError") {
-    statusCode = 400;
-    message = 'Invalid token!';
+  } else if (err instanceof Error) {
+    message = err.message;
     errorSources = [
       {
         path: '',
-        message: error?.message,
-      },
-    ];
-  } else if (error instanceof Error) {
-    message = error.message;
-    errorSources = [
-      {
-        path: '',
-        message: error?.message,
+        message: err?.message,
       },
     ];
   }
 
-  return res.status(statusCode).json({
+  res.status(statusCode).json({
     success: false,
-    statusCode,
     message,
     errorSources,
-    // error,
-    stack: config.NODE_ENV === 'development' ? error.stack : null
-  })
-}
-
-
-const errorHandlerWithParams: (params: any) => any = (params) => {
-  return (error: any, req: Request, res: Response, next: NextFunction) => {
-    globalErrorHandler(error, req, res, next);
-  };
+    err,
+    stack: config.NODE_ENV === 'development' ? err?.stack : null,
+  });
 };
 
-export default errorHandlerWithParams;
-
+export default globalErrorHandler;

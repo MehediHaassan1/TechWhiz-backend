@@ -33,5 +33,11 @@ router.delete(
   UserController.deleteUser
 )
 
+router.put(
+  '/:userId/follow-toggle',
+  authHandler(User_Role.user, User_Role.admin),
+  UserController.toggleFollow
+);
+
 
 export const UserRoutes = router;

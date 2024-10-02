@@ -9,20 +9,27 @@ const router = express.Router();
 
 router.post(
   '/',
-  authHandler(User_Role.user),
+  authHandler(User_Role.user, User_Role.admin),
   validateRequestHandler(PostValidation.createPostValidation),
   PostController.createPost
 );
 
+
+
 router.get(
   '/',
-  authHandler(User_Role.user, User_Role.admin),
   PostController.getPosts
 );
 
 router.get(
-  '/:postId',
+  '/my-posts',
   authHandler(User_Role.user, User_Role.admin),
+  PostController.myPosts
+)
+
+
+router.get(
+  '/:postId',
   PostController.getPostById
 );
 
@@ -56,5 +63,12 @@ router.put(
   authHandler(User_Role.user, User_Role.admin),
   PostController.commentUpdate
 )
+
+router.put(
+  '/:postId/vote',
+  authHandler(User_Role.user, User_Role.admin),
+  PostController.votePost
+);
+
 
 export const PostRoutes = router;
