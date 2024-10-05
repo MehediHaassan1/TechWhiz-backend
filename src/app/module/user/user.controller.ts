@@ -50,6 +50,17 @@ const updateUser = catchAsync(async (req, res) => {
   });
 })
 
+const manageUserStatus = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  const action: 'block' | 'unblock' = req.query.action as 'block' | 'unblock';
+  const result = await UserService.manageUserStatusIntoDB(userId, action);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Status updated successfully!",
+    data: result
+  });
+})
 
 const deleteUser = catchAsync(async (req, res) => {
   const userId = req.params.userId;
@@ -79,6 +90,7 @@ export const UserController = {
   getUser,
   getMe,
   updateUser,
+  manageUserStatus,
   deleteUser,
   toggleFollow,
 }

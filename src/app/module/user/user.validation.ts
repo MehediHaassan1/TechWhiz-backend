@@ -18,11 +18,14 @@ const updateUserValidation = z.object({
   body: z.object({
     name: z.string().optional(),
     phone: z.string().optional(),
-    gender: z.enum(['male', 'female'], { message: 'Gender must be male or female!' }).optional(),
-    birthday: z.string().optional(),
-    profileImage: z.string().url("Invalid URL").optional(),
+    gender: z.enum(
+      ['male', 'female', "other"],
+      { message: 'Gender must be male or female or other!' }
+    ).optional(),
+    profileImage: z.string().optional(),
+    coverImage: z.string().optional(),
     bio: z.string().optional(),
-    userName: z.string().optional(),
+    address: z.string().optional(),
   })
 })
 

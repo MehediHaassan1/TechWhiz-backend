@@ -35,6 +35,10 @@ const loginUserIntoDB = async (payload: ILogin) => {
     throw new AppError(httpStatus.NOT_FOUND, 'User is deleted!')
   }
 
+  if (user?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
+  }
+
   const isPasswordMatch = await User.isPasswordMatched(payload.password, user?.password);
   if (!isPasswordMatch) {
     throw new AppError(httpStatus.NOT_FOUND, 'Invalid Password!');
@@ -83,6 +87,10 @@ const changePasswordIntoDB = async (
     throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted!');
   }
 
+  if (user?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
+  }
+
   if (!(await User.isPasswordMatched(oldPassword, user?.password)))
     throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched');
 
@@ -120,6 +128,10 @@ const refreshTokenFromDB = async (token: string) => {
 
   if (user?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted!');
+  }
+
+  if (user?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
   }
 
   if (

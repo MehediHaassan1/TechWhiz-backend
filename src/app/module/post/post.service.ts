@@ -171,6 +171,9 @@ const myPostsFromDB = async (userEmail: string) => {
   if (user?.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "User deleted!")
   }
+  if (user?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
+  }
   const userId = user?._id.toString();
 
   const result = await Post.find({ author: userId, isDeleted: false })

@@ -5,11 +5,11 @@ export interface IUser {
   _id: string;
   name: string;
   email: string;
-  phone: string;
+  phone: string;  
   password: string;
   passwordChangedAt?: Date;
   role: 'user' | 'admin';
-  gender: 'male' | 'female';
+  gender: 'male' | 'female' | 'other';
   birthday: string;
   profileImage: string;
   isVerified: boolean;
@@ -17,8 +17,11 @@ export interface IUser {
   followers: Types.ObjectId[];
   following: Types.ObjectId[];
   bio: string;
-  subscription: 'normal' | 'premium';
+  subscription: 'free' | 'premium';
   userName: string;
+  status: "active" | "block";
+  coverImage: string;
+  address: string;
 }
 
 export interface IUserModel extends Model<IUser> {

@@ -34,6 +34,9 @@ const authHandler = (...userRoles: TUserRole[]) => {
     if (existingUser.isDeleted) {
       throw new AppError(httpStatus.NOT_FOUND, 'User not found!')
     }
+    if (existingUser?.status === "block") {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
+    }
 
     if (
       existingUser.passwordChangedAt &&

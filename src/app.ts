@@ -3,12 +3,14 @@ import router from './app/routes';
 import cookieParser from 'cookie-parser';
 import globalErrorHandler from './app/middleware/globalError';
 import notFound from './app/middleware/notFound';
+import cors from "cors";
 const app: Application = express()
 
 
 // parser
 app.use(express.json());
 app.use(cookieParser())
+app.use(cors());
 
 // global route
 app.use('/api/v1', router)

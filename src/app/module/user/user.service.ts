@@ -18,6 +18,9 @@ const getUserFromDB = async (userId: string) => {
   if (user?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, "User is deleted!");
   }
+  if (user?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
+  }
 
   return user;
 }
@@ -30,6 +33,9 @@ const getMeFromDB = async (email: string) => {
   if (user?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, "User is deleted!");
   }
+  if (user?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
+  }
   return user;
 }
 
@@ -41,6 +47,9 @@ const updateUserInDB = async (email: string, payload: Partial<IUser>) => {
   }
   if (user?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!')
+  }
+  if (user?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
   }
 
   const isUserNameUserExists = await User.findOne({ userName: payload.userName })
@@ -58,6 +67,35 @@ const updateUserInDB = async (email: string, payload: Partial<IUser>) => {
 }
 
 
+const manageUserStatusIntoDB = async (userId: string, action: 'block' | 'unblock') => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
+  }
+
+  if (action === 'block') {
+    if (user?.isDeleted) {
+      throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');
+    }
+    if (user?.status === "block") {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User is already blocked!');
+    }
+  } else if (action === 'unblock') {
+    if (user?.status !== "block") {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User is not blocked!');
+    }
+  }
+
+  const updatedStatus = action === 'block' ? "block" : "active";
+
+  const result = await User.findByIdAndUpdate(
+    user?._id,
+    { status: updatedStatus },
+    { new: true }
+  );
+
+  return result;
+};
 
 
 
@@ -90,6 +128,10 @@ const toggleFollowIntoDB = async (followingId: string, followerEmail: string) =>
 
   if (following?.isDeleted || follower?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, "User is deleted.");
+  }
+
+  if (following?.status === "block" || follower?.status === "block") {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
   }
 
   const isFollowing = following.followers.includes(new mongoose.Types.ObjectId(follower?._id));
@@ -132,6 +174,7 @@ export const UserService = {
   getAllUsersFromDB,
   getMeFromDB,
   updateUserInDB,
+  manageUserStatusIntoDB,
   deleteUserFromDB,
   toggleFollowIntoDB,
 }

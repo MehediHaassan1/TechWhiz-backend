@@ -18,7 +18,6 @@ const userSchema = new Schema<IUser, IUserModel>({
     type: String,
     unique: true,
     trim: true,
-    default: "",
   },
   email: {
     type: String,
@@ -46,7 +45,7 @@ const userSchema = new Schema<IUser, IUserModel>({
   },
   gender: {
     type: String,
-    enum: ['male', 'female'],
+    enum: ['male', 'female', 'other'],
     required: true,
   },
   birthday: {
@@ -55,7 +54,6 @@ const userSchema = new Schema<IUser, IUserModel>({
   },
   profileImage: {
     type: String,
-    default: 'https://i.ibb.co.com/vkVW6s0/download.png',
   },
   isVerified: {
     type: Boolean,
@@ -82,9 +80,24 @@ const userSchema = new Schema<IUser, IUserModel>({
   },
   subscription: {
     type: String,
-    enum: ['normal', 'premium'],
-    default: 'normal',
+    enum: ['free', 'premium'],
+    default: 'free',
   },
+  status: {
+    type: String,
+    enum: ["active", "block"],
+    default: "active",
+    required: true,
+  },
+  coverImage: {
+    type: String,
+    required: true,
+    default: '',
+  },
+  address: {
+    type: String,
+    required: true,
+  }
 }, {
   timestamps: true,
 });

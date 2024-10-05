@@ -18,6 +18,7 @@ router.get(
 
 router.get(
   '/',
+  authHandler(User_Role.admin),
   UserController.getAllUsers
 )
 
@@ -25,11 +26,19 @@ router.get(
 
 router.put(
   '/update-profile',
+  authHandler(User_Role.admin, User_Role.user),
   UserController.updateUser
+)
+
+router.patch(
+  '/:userId/status',
+  authHandler(User_Role.admin),
+  UserController.manageUserStatus,
 )
 
 router.delete(
   '/:userId',
+  authHandler(User_Role.admin),
   UserController.deleteUser
 )
 
