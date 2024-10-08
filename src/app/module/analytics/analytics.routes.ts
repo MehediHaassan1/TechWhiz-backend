@@ -7,8 +7,14 @@ const router = Router();
 
 router.get(
   '/',
-  // authHandler(User_Role.admin),
+  authHandler(User_Role.admin),
   AnalyticsController.getAnalytics
+)
+
+router.get(
+  '/user-analytics',
+  authHandler(User_Role.user),
+  AnalyticsController.getUserAnalytics
 )
 
 export const AnalyticsRoutes = router;

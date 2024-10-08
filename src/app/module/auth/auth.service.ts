@@ -19,7 +19,8 @@ const registerUserIntoDB = async (payload: IUser) => {
   if (isPhoneExists) {
     throw new AppError(httpStatus.CONFLICT, 'Phone number already exists!')
   }
-
+  console.log(payload, 'service');
+  
   const result = await User.create(payload);
   return result;
 }
@@ -38,6 +39,8 @@ const loginUserIntoDB = async (payload: ILogin) => {
   if (user?.status === "block") {
     throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
   }
+
+  console.log(payload);
 
   const isPasswordMatch = await User.isPasswordMatched(payload.password, user?.password);
   if (!isPasswordMatch) {
@@ -62,8 +65,6 @@ const loginUserIntoDB = async (payload: ILogin) => {
     config.jwt_refresh_secret as string,
     config.jwt_refresh_secret_expires_in as string
   )
-
-  console.log(jwtPayload);
 
   return {
     user,

@@ -8,9 +8,12 @@ const app: Application = express()
 
 
 // parser
+app.use(cors({
+  origin: ['https://tech-whiz-frontend.vercel.app', 'http://localhost:3000',],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser())
-app.use(cors());
 
 // global route
 app.use('/api/v1', router)

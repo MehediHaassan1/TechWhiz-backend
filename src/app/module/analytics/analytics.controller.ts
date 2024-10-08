@@ -13,6 +13,18 @@ const getAnalytics = catchAsync(async (req, res) => {
   })
 })
 
+const getUserAnalytics = catchAsync(async (req, res) => {
+  const email = req.user.email;
+  const result = await AnalyticsService.getUserAnalyticsFromDB(email)
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Analytics was successfully retrieved!',
+    data: result,
+  })
+})
+
 export const AnalyticsController = {
   getAnalytics,
+  getUserAnalytics,
 }

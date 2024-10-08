@@ -91,12 +91,11 @@ const userSchema = new Schema<IUser, IUserModel>({
   },
   coverImage: {
     type: String,
-    required: true,
-    default: '',
+    required: false
   },
   address: {
     type: String,
-    required: true,
+    required: false,
   }
 }, {
   timestamps: true,

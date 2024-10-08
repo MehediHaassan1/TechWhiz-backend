@@ -30,7 +30,7 @@ export const generateUniqueId = async (): Promise<string> => {
   return uniqueId;
 };
 
-export const initiatePayment = async (payload) => {
+export const initiatePayment = async (payload:any) => {
 
 
   const paymentDataString = encodeURIComponent(JSON.stringify(payload));
