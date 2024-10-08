@@ -3,7 +3,6 @@ import AppError from "../../errors/AppError";
 import { IPost, IComment } from "./post.interface";
 import Post from "./post.model";
 import User from "../user/user.model";
-import mongoose from "mongoose";
 
 const createPostIntoDB = async (postData: IPost) => {
   const result = await Post.create(postData)
@@ -141,7 +140,24 @@ const commentUpdateIntoDB = async (
   return updatedPost;
 }
 
-const votePostIntoDB = async (postId: string, action: 'upvote' | 'downvote') => {
+const votePostIntoDB = async (
+  postId: string,
+  action: 'upvote' | 'downvote',
+  voterEmail: string,
+) => {
+  const voter = await User.isUserExists(voterEmail);
+  if (!voter) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
+  }
+
+  if (voter?.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User Deleted!');
+  }
+
+  if (voter?.status === 'block') {
+    throw new AppError(httpStatus.NOT_FOUND, 'User Blocked!');
+  }
+
   const post = await Post.findById(postId);
 
   if (!post) {
@@ -152,15 +168,31 @@ const votePostIntoDB = async (postId: string, action: 'upvote' | 'downvote') => 
     throw new AppError(httpStatus.NOT_FOUND, 'Post has been deleted');
   }
 
+  const updateOperations: any = {};
+
   if (action === 'upvote') {
-    post.upVotes += 1;
+    if (post.upVotes.includes(voter._id)) {
+      updateOperations.$pull = { upVotes: voter._id };
+    } else {
+      updateOperations.$addToSet = { upVotes: voter._id };
+      updateOperations.$pull = { downVotes: voter._id };
+    }
   } else if (action === 'downvote') {
-    post.downVotes += 1;
+    if (post.downVotes.includes(voter._id)) {
+      updateOperations.$pull = { downVotes: voter._id };
+    } else {
+      updateOperations.$addToSet = { downVotes: voter._id };
+      updateOperations.$pull = { upVotes: voter._id };
+    }
   }
 
-  const updatedPost = await post.save();
+  const updatedPost = await Post.findByIdAndUpdate(postId, updateOperations, {
+    new: true,
+  });
+
   return updatedPost;
 };
+
 
 
 const myPostsFromDB = async (userEmail: string) => {

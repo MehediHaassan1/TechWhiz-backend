@@ -19,6 +19,14 @@ const postSchema = new Schema({
     required: true,
     trim: true,
   },
+  description: {
+    type: String,
+    required: true
+  },
+  thumbnail: {
+    type: String,
+    required: true,
+  },
   content: {
     type: String,
     required: true,
@@ -40,18 +48,21 @@ const postSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  upVotes: {
-    type: Number,
-    default: 0,
-  },
-  downVotes: {
-    type: Number,
-    default: 0,
-  },
+  upVotes: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: [],
+    },
+  ],
+  downVotes: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: [],
+    },
+  ],
   comments: [commentSchema],
-  images: {
-    type: [String],
-  },
   status: {
     type: String,
     enum: ['Draft', 'Published'],

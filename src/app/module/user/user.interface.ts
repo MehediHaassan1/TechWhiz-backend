@@ -2,10 +2,10 @@ import { Model, Types } from "mongoose";
 import { User_Role } from "./user.constant";
 
 export interface IUser {
-  _id: string;
+  _id: Types.ObjectId;
   name: string;
   email: string;
-  phone: string;  
+  phone: string;
   password: string;
   passwordChangedAt?: Date;
   role: 'user' | 'admin';
@@ -17,7 +17,7 @@ export interface IUser {
   followers: Types.ObjectId[];
   following: Types.ObjectId[];
   bio: string;
-  subscription: 'free' | 'premium';
+  subscription: 'free' | 'basic' | 'pro';
   userName: string;
   status: "active" | "block";
   coverImage: string;

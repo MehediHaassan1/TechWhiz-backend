@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Failed</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #e2e8f0;
+      /* Light gray background */
+    }
+
+    .confirmation-container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #c53030;
+      /* Dark red for the header */
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #4a5568;
+      /* Gray text for paragraph */
+      margin-bottom: 30px;
+    }
+
+    .btn-home {
+      background-color: #a0aec0;
+      /* Gray button */
+      color: #ffffff;
+      padding: 12px 25px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .btn-home:hover {
+      background-color: #718096;
+      /* Darker gray on hover */
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+
+      .btn-home {
+        font-size: 0.9rem;
+        padding: 10px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="confirmation-container">
+    <h1>{{message}}</h1>
+    <img style="height: 300px; width: 300px" src="https://i.ibb.co/9bKrbhq/failed.png" alt="payment-fail">
+    <p>
+      Your payment couldn't be processed. Please try again later or contact support.
+    </p>
+    <a href="http://localhost:3000" class="btn-home">Go Home</a>
+  </div>
+</body>
+
+</html>

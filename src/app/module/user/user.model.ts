@@ -80,7 +80,7 @@ const userSchema = new Schema<IUser, IUserModel>({
   },
   subscription: {
     type: String,
-    enum: ['free', 'premium'],
+    enum: ['free', 'basic', 'pro'],
     default: 'free',
   },
   status: {

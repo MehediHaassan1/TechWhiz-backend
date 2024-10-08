@@ -12,4 +12,13 @@ export default {
     jwt_access_secret_expires_in: process.env.JWT_ACCESS_SECRET_EXPIRES_IN,
     jwt_refresh_secret: process.env.JWT_REFRESH_SECRET,
     jwt_refresh_secret_expires_in: process.env.JWT_REFRESH_SECRET_EXPIRES_IN,
+    cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
+    cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    Store_id: process.env.STORE_ID,
+    SIGNATURE_KEY: process.env.SIGNATURE_KEY,
+    PAYMENT_URL: process.env.PAYMENT_URL,
+    VERIFY_URL: process.env.VERIFY_URL,
+    FrontEnd_URL: process.env.FrontEnd_URL,
+    Backend_URL: process.env.Backend_URL,
 }

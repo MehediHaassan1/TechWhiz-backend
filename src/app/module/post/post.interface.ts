@@ -8,17 +8,15 @@ export interface IComment {
 export interface IPost {
   _id: Types.ObjectId;
   title: string;
+  thumbnail: string;
+  description: string;
   content: string;
   author: Types.ObjectId;
   category: 'Web' | 'Software Engineering' | 'AI' | 'ML' | 'VR' | "Others";
-  tags?: string[];
   isPremium: boolean;
-  upVotes: number;
-  downVotes: number;
+  upVotes: Types.ObjectId[];
+  downVotes: Types.ObjectId[];
   comments: IComment[];
-  images?: string[];
-  createdAt: Date;
-  updatedAt?: Date;
   status: 'Draft' | 'Published';
   pdfVersion?: string;
   isDeleted: boolean;

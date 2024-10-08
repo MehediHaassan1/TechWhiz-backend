@@ -66,6 +66,7 @@ router.put(
 
 router.put(
   '/:postId/vote',
+  authHandler(User_Role.user, User_Role.admin),
   PostController.votePost
 );
 

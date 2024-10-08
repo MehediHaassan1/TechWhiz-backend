@@ -99,12 +99,15 @@ const commentUpdate = catchAsync(async (req, res) => {
 const votePost = catchAsync(async (req, res) => {
   const { postId } = req.params;
   const { action } = req.body;
+  const voterEmail = req.user.email
+
+  console.log({postId, action})
 
   if (!['upvote', 'downvote'].includes(action)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid action');
   }
 
-  const result = await PostService.votePostIntoDB(postId, action);
+  const result = await PostService.votePostIntoDB(postId, action, voterEmail);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
