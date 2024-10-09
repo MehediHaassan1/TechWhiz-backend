@@ -22,6 +22,11 @@ router.get(
 );
 
 router.get(
+  '/popular-posts',
+  PostController.getPopularPosts
+)
+
+router.get(
   '/my-posts',
   authHandler(User_Role.user, User_Role.admin),
   PostController.myPosts

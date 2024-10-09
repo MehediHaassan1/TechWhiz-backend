@@ -9,13 +9,26 @@ const createPostIntoDB = async (postData: IPost) => {
   return result;
 };
 
-const getPostsFromDB = async () => {
-  const result = await Post.find()
+const getPostsFromDB = async (category: string, search: string) => {
+  const query: any = {};
+
+  if (category) {
+    query.category = category;
+  }
+
+  if (search) {
+    query.title = { $regex: search, $options: "i" };
+  }
+  const result = await Post.find(query)
     .populate("author")
     .populate("comments.user")
-    .sort("-createdAt");
+    .sort({ createdAt: -1 });
   return result;
 };
+
+const getPopularPostsFromDB = async() =>{
+  console.log('hell')
+}
 
 const getPostByIdFromDB = async (postId: string) => {
   const post = await Post.findById(postId).populate("author").populate("comments.user")
@@ -224,6 +237,7 @@ const myPostsFromDB = async (userEmail: string) => {
 export const PostService = {
   createPostIntoDB,
   getPostsFromDB,
+  getPopularPostsFromDB,
   getPostByIdFromDB,
   updatePostIntoDB,
   deletePostFromDB,

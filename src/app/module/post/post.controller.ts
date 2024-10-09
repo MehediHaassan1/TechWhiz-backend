@@ -17,11 +17,22 @@ const createPost = catchAsync(async (req, res) => {
 })
 
 const getPosts = catchAsync(async (req, res) => {
-  const result = await PostService.getPostsFromDB();
+  const { category, search } = req.query;
+  const result = await PostService.getPostsFromDB(category as string, search as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Posts fetched successfully!",
+    data: result
+  });
+})
+
+const getPopularPosts = catchAsync(async (req, res) => {
+  const result = await PostService.getPopularPostsFromDB();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Popular Posts fetched successfully!",
     data: result
   });
 })
@@ -134,6 +145,7 @@ const myPosts = catchAsync(async (req, res) => {
 export const PostController = {
   createPost,
   getPosts,
+  getPopularPosts,
   getPostById,
   updatePost,
   deletePost,
