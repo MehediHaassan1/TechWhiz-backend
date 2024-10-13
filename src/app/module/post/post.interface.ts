@@ -21,3 +21,13 @@ export interface IPost {
   pdfVersion?: string;
   isDeleted: boolean;
 }
+
+
+export interface PostFilterOptions {
+  search?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+  category?: string;
+}

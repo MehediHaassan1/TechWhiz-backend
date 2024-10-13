@@ -1,11 +1,12 @@
 import { readFileSync } from 'fs';
-import path, { join } from 'path';
+import { join } from 'path';
 import httpStatus from "http-status";
 import User from "../user/user.model";
 import AppError from "../../errors/AppError";
 import { generateUniqueId, initiatePayment, verifyPayment } from "./payment.utils";
 import Payment from './payment.model';
 import { IPayment } from './payment.interface';
+import { v4 as uuidv4 } from 'uuid';
 
 const getPaymentHistoryFromDB = async () => {
   const result = await Payment.find().populate('user');
@@ -41,8 +42,17 @@ const createPaymentIntoDB = async (email: string, data: Partial<IPayment>) => {
     throw new AppError(httpStatus.BAD_REQUEST, `User is blocked!`);
   }
 
+  const isFreeSubscription = user?.subscription === 'free';
+  if (!isFreeSubscription) {
+    throw new AppError(httpStatus.BAD_REQUEST, `User cannot make another payment because they have an active subscription.`);
+  }
+  if (user?.isVerified) {
+    throw new AppError(httpStatus.BAD_REQUEST, `User has already an active subscription.!`);
+  }
+
+
   if (user) {
-    const trxID = await generateUniqueId();
+    const trxID = uuidv4();
 
     const paymentData = {
       user: user?._id,
@@ -71,7 +81,7 @@ const confirmPaymentIntoDB = async (
   try {
 
     const res = await verifyPayment(trxId);
-
+    console.log({ trxId, res })
 
     if (res) {
 

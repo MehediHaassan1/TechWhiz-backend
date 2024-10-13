@@ -49,26 +49,25 @@ const getAnalyticsFromDB = async () => {
 
   return analytics[0];
 }
-
 const getUserAnalyticsFromDB = async (email: string) => {
-  const user = await User.isUserExists(email)
+  const user = await User.isUserExists(email);
   if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found!")
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
   }
 
   if (user?.isDeleted) {
-    throw new AppError(httpStatus.NOT_FOUND, "User is deleted!")
+    throw new AppError(httpStatus.NOT_FOUND, "User is deleted!");
   }
 
   if (user?.status === 'block') {
-    throw new AppError(httpStatus.BAD_REQUEST, "User is blocked!")
+    throw new AppError(httpStatus.BAD_REQUEST, "User is blocked!");
   }
 
   const userAnalytics = await Post.aggregate([
     { $match: { author: user._id } },
     {
       $group: {
-        _id: { 
+        _id: {
           month: { $dateToString: { format: "%Y-%m", date: "$createdAt" } }
         },
         totalPosts: { $sum: 1 },
@@ -80,36 +79,59 @@ const getUserAnalyticsFromDB = async (email: string) => {
     {
       $lookup: {
         from: "payments",
-        localField: "_id.month", 
-        foreignField: "createdAt",
+        let: { postMonth: "$_id.month", userId: user._id },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$user", "$$userId"] },
+                  { $eq: [{ $dateToString: { format: "%Y-%m", date: "$createdAt" } }, "$$postMonth"] }
+                ]
+              }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalAmount: { $sum: { $toDouble: "$packagePrice" } }
+            }
+          },
+          {
+            $project: {
+              _id: 0,
+              totalAmount: 1
+            }
+          }
+        ],
         as: "payments"
       }
     },
     {
       $addFields: {
-        totalPayments: { $size: "$payments" }
+        totalAmount: {
+          $ifNull: [{ $arrayElemAt: ["$payments.totalAmount", 0] }, 0]
+        }
       }
     },
     {
+      // Add the correct lookup for followers and following with ObjectId casting
       $lookup: {
-        from: "followers",
-        localField: "_id.month",
-        foreignField: "followedAt",
-        as: "followers"
-      }
-    },
-    {
-      $lookup: {
-        from: "followings",
-        localField: "_id.month",
-        foreignField: "followedAt",
-        as: "followings"
+        from: "users",
+        localField: "author", // Match author's ID from 'Post' collection
+        foreignField: "_id", // Match against the '_id' field in 'users'
+        as: "userDetails" // Store the result in 'userDetails'
       }
     },
     {
       $addFields: {
-        totalFollowers: { $size: "$followers" },
-        totalFollowings: { $size: "$followings" }
+        user: { $arrayElemAt: ["$userDetails", 0] }, // Get the first element (should be the user)
+      }
+    },
+    {
+      $addFields: {
+        totalFollowers: { $size: { $ifNull: ["$user.followers", []] } }, // Fallback to empty array if null
+        totalFollowings: { $size: { $ifNull: ["$user.following", []] } } // Fallback to empty array if null
       }
     },
     {
@@ -120,17 +142,45 @@ const getUserAnalyticsFromDB = async (email: string) => {
         totalLikes: 1,
         totalDislikes: 1,
         totalComments: 1,
-        totalPayments: 1,
+        totalAmount: 1,
         totalFollowers: 1,
         totalFollowings: 1
       }
     },
-
-    { $sort: { month: 1 } }
+    { $sort: { month: 1 } },
+    {
+      $group: {
+        _id: null,
+        totalPosts: { $sum: "$totalPosts" },
+        totalLikes: { $sum: "$totalLikes" },
+        totalDislikes: { $sum: "$totalDislikes" },
+        totalComments: { $sum: "$totalComments" },
+        totalAmount: { $sum: "$totalAmount" },
+        totalFollowers: { $first: "$totalFollowers" },
+        totalFollowings: { $first: "$totalFollowings" },
+        monthlyData: { $push: "$$ROOT" }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        totalPosts: 1,
+        totalLikes: 1,
+        totalDislikes: 1,
+        totalComments: 1,
+        totalAmount: 1,
+        totalFollowers: 1,
+        totalFollowings: 1,
+        monthlyData: 1
+      }
+    }
   ]);
 
   return userAnalytics;
-}
+};
+
+
+
 
 export const AnalyticsService = {
   getAnalyticsFromDB,

@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
 import AppError from "../../errors/AppError";
-import { IPost, IComment } from "./post.interface";
+import { IPost, IComment, PostFilterOptions } from "./post.interface";
 import Post from "./post.model";
 import User from "../user/user.model";
 
@@ -9,7 +9,15 @@ const createPostIntoDB = async (postData: IPost) => {
   return result;
 };
 
-const getPostsFromDB = async (category: string, search: string) => {
+const getPostsFromDB = async (params: {
+  category?: string;
+  search?: string;
+  isPopular?: boolean;
+  isRandom?: boolean;
+  page: number;
+  limit: number;
+}) => {
+  const { category, search, isPopular, isRandom, page, limit } = params;
   const query: any = {};
 
   if (category) {
@@ -19,16 +27,49 @@ const getPostsFromDB = async (category: string, search: string) => {
   if (search) {
     query.title = { $regex: search, $options: "i" };
   }
-  const result = await Post.find(query)
+
+  const skip = (page - 1) * limit;
+
+  const totalItems = await Post.countDocuments(query);
+
+  let posts = await Post.find(query)
     .populate("author")
     .populate("comments.user")
-    .sort({ createdAt: -1 });
-  return result;
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  if (isPopular) {
+    posts = posts.sort((a, b) => b.upVotes.length - a.upVotes.length);
+  }
+
+  if (isRandom) {
+    let randomPostsCache = null;
+    let lastRandomFetch = 0;
+    const currentTime = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    if (!randomPostsCache || currentTime - lastRandomFetch >= twentyFourHours) {
+      randomPostsCache = posts.sort(() => 0.5 - Math.random());
+      lastRandomFetch = currentTime;
+    }
+
+    posts = randomPostsCache;
+  }
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return {
+    posts,
+    meta: {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      limit,
+    },
+  };
 };
 
-const getPopularPostsFromDB = async() =>{
-  console.log('hell')
-}
 
 const getPostByIdFromDB = async (postId: string) => {
   const post = await Post.findById(postId).populate("author").populate("comments.user")
@@ -208,36 +249,89 @@ const votePostIntoDB = async (
 
 
 
-const myPostsFromDB = async (userEmail: string) => {
+const myPostsFromDB = async (userEmail: string, options: PostFilterOptions) => {
   const user = await User.isUserExists(userEmail);
+
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
   }
   if (user?.isDeleted) {
-    throw new AppError(httpStatus.NOT_FOUND, "User deleted!")
+    throw new AppError(httpStatus.NOT_FOUND, "User deleted!");
   }
   if (user?.status === "block") {
-    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!')
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is blocked!');
   }
-  const userId = user?._id.toString();
 
-  const result = await Post.find({ author: userId, isDeleted: false })
+  const page = options.page || 1;
+  const limit = options.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const searchFilter = options.search
+    ? {
+      $or: [
+        { title: { $regex: options.search, $options: "i" } },
+        { content: { $regex: options.search, $options: "i" } },
+      ],
+    }
+    : {};
+
+  const categoryFilter = options.category ? { category: options.category } : {};
+
+  const result = await Post.find({
+    author: user?._id,
+    isDeleted: false,
+    ...searchFilter,
+    ...categoryFilter,
+  })
     .populate('author')
-    .sort("-createdAt");
+    .skip(skip)
+    .limit(limit);
 
+  const totalItems = await Post.countDocuments({
+    author: user?._id,
+    isDeleted: false,
+    ...searchFilter,
+    ...categoryFilter,
+  });
 
-  if (!result) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Post not found!');
+  if (!result.length) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Posts not found!');
   }
 
-  return result;
-}
+  const sortField = options.sortBy || "createdAt";
+  const sortOrder = options.sortOrder === "asc" ? 1 : -1;
+
+  result.sort((a, b) => {
+    const fieldA = a[sortField as keyof typeof a];
+    const fieldB = b[sortField as keyof typeof b];
+
+    if (fieldA > fieldB) {
+      return sortOrder;
+    } else if (fieldA < fieldB) {
+      return -1 * sortOrder;
+    } else {
+      return 0;
+    }
+  });
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return {
+    posts: result,
+    meta: {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      limit,
+    },
+  };
+};
+
 
 
 export const PostService = {
   createPostIntoDB,
   getPostsFromDB,
-  getPopularPostsFromDB,
   getPostByIdFromDB,
   updatePostIntoDB,
   deletePostFromDB,

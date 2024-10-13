@@ -3,6 +3,7 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { PostService } from "./post.service";
 import AppError from "../../errors/AppError";
+import { PostFilterOptions } from "./post.interface";
 
 
 const createPost = catchAsync(async (req, res) => {
@@ -17,25 +18,26 @@ const createPost = catchAsync(async (req, res) => {
 })
 
 const getPosts = catchAsync(async (req, res) => {
-  const { category, search } = req.query;
-  const result = await PostService.getPostsFromDB(category as string, search as string);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Posts fetched successfully!",
-    data: result
-  });
-})
+  const { category, search, isPopular, isRandom, page = 1, limit = 10 } = req.query;
 
-const getPopularPosts = catchAsync(async (req, res) => {
-  const result = await PostService.getPopularPostsFromDB();
+  const result = await PostService.getPostsFromDB({
+    category: category as string,
+    search: search as string,
+    isPopular: isPopular === "true",
+    isRandom: isRandom === "true",
+    page: parseInt(page as string, 10),
+    limit: parseInt(limit as string, 10),
+  });
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Popular Posts fetched successfully!",
-    data: result
+    message: isPopular === "true"
+      ? "Popular Posts fetched successfully!"
+      : "Posts fetched successfully!",
+    data: result,
   });
-})
+});
 
 const getPostById = catchAsync(async (req, res) => {
   const postId = req.params.postId;
@@ -112,7 +114,7 @@ const votePost = catchAsync(async (req, res) => {
   const { action } = req.body;
   const voterEmail = req.user.email
 
-  console.log({postId, action})
+  console.log({ postId, action })
 
   if (!['upvote', 'downvote'].includes(action)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid action');
@@ -131,7 +133,15 @@ const votePost = catchAsync(async (req, res) => {
 
 const myPosts = catchAsync(async (req, res) => {
   const userEmail = req.user.email;
-  const result = await PostService.myPostsFromDB(userEmail);
+  const options: PostFilterOptions = {
+    search: req.query.search as string || undefined,
+    sortBy: req.query.sortBy as string || 'createdAt',
+    sortOrder: req.query.sortOrder as 'asc' | 'desc' || 'desc',
+    page: req.query.page ? parseInt(req.query.page as string) : 1,
+    limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
+    category: req.query.category as string || undefined,
+  };
+  const result = await PostService.myPostsFromDB(userEmail, options);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -145,7 +155,6 @@ const myPosts = catchAsync(async (req, res) => {
 export const PostController = {
   createPost,
   getPosts,
-  getPopularPosts,
   getPostById,
   updatePost,
   deletePost,

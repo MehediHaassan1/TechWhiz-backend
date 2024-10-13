@@ -11,10 +11,6 @@ const router = Router();
 
 router.post(
   '/register',
-  (req,res, next) => {
-    console.log(req.body, 'route')
-    next()
-  },
   validateRequestHandler(UserValidation.createUserValidation),
   AuthController.registerUser
 )
